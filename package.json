@@ -1,11 +1,11 @@
 {
-  "name": "z-assembler",
+  "name": "hack-assembler",
   "version": "1.0.0",
   "description": "Assembler for the Hack language ecosystem",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
   "module": "build/module/index.js",
-  "repository": "https://github.com/zbennett10/z-assembler",
+  "repository": "https://github.com/zbennett10/hack-assembler",
   "license": "MIT",
   "keywords": [],
   "scripts": {

@@ -32,3 +32,7 @@ declare module 'sha.js' {
     // tslint:enable:no-method-signature
   }
 }
+
+declare interface SymbolConstructor {
+    readonly observable: symbol;
+}

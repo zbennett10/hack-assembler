@@ -1,3 +1,3 @@
-# z-assembler
+# hack-assembler
 
-Assembler for the Hack language ecosystem
+This is my TypeScript implementation of the nand2Tetris Assembler for the 16-bit Hack programming language.
