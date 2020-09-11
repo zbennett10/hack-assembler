@@ -7,8 +7,6 @@ export enum CommandType {
 
 // tslint:disable-next-line: no-class
 export class HackParser {
-    
-    constructor() {}
 
     /**
      * 
@@ -41,7 +39,7 @@ export class HackParser {
     private getCommandType(line: string): CommandType {
         if (/\@.*/gi.test(line)) {
             return CommandType.A_COMMAND;
-        } else if (/.*\;.*/gi.test(line)) {
+        } else if (/.*(=|;).*/gi.test(line)) {
             return CommandType.C_COMMAND;
         } else if (/\(.*\)/gi.test(line)) {
             return CommandType.L_COMMAND;
@@ -56,9 +54,13 @@ export class HackParser {
                 const parsedNum = parseFloat(line.replace('@', ''));
                 const binary = `0${parsedNum.toString(2)}`;
                 // TODO: this will need to check the symbol table if a symbol and not a number directly
-                return this.fill(binary);
+                return this.fill(binary).split('').map((b, i) => (i + 1) % 4 === 0 ? b + ' ' : b).join('');
             }
-            case CommandType.L_COMMAND: { // For parsing pseduo-commands like (LOOP) or (END)
+            case CommandType.C_COMMAND: {
+                return this.fill(('111' + this.composeCCommandMnemonics(line))).split('').map((b, i) => (i + 1) % 4 === 0 ? b + ' ' : b).join('');
+
+            }
+            case CommandType.L_COMMAND: { // For parsing pseudo-commands like (LOOP) or (END)
                 // TODO: Need to store symbol location...
                 return '\n';
             }
@@ -73,15 +75,42 @@ export class HackParser {
     }
 
     private getDest(line: string): string {
-        return line;
+        const equalsIdx = line.indexOf('=');
+        if (equalsIdx > -1) {
+            switch (line.slice(0, equalsIdx)) {
+                case 'M': return '001';
+                case 'D': return '010';
+                case 'MD': return '011';
+                case 'A': return '100';
+                case 'AM': return '101';
+                case 'AD': return '110';
+                case 'AMD': return '111';
+                default: return '';
+            }
+        }
+        return '';
     }
 
+    // TODO: 9/11/2020 - left off here - see page 109 in book
     private getComp(line: string): string {
         return line;
     }
 
     private getJump(line: string): string {
-        return line;
+        const semicolonIdx = line.indexOf(';');
+        if (semicolonIdx > -1) {
+            switch (line.slice(semicolonIdx)) {
+                case 'JGT': return '001';
+                case 'JEQ': return '010';
+                case 'JGE': return '011';
+                case 'JLT': return '100';
+                case 'JNE': return '101';
+                case 'JLE': return '110';
+                case 'JMP': return '111';
+                default: return '';
+            }
+        }
+        return '';
     }
 
     private fill(binary: string): string {
