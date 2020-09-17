@@ -1,3 +1,5 @@
+import hackSymbolTable from './symbol-table';
+
 export enum CommandType {
     A_COMMAND = 'A_COMMAND',
     C_COMMAND = 'C_COMMAND',
@@ -8,18 +10,19 @@ export enum CommandType {
 // tslint:disable-next-line: no-class
 export class HackParser {
 
+    private symbolTable = hackSymbolTable;
+
     /**
      * 
      * @param asmCode Assembly code that needs to be translated into 16-bit machine language
      */
     public generate(asmCode: string): string {
         const lines = asmCode.replace(/\r/g, "").split(/\n/);
-        
-        // TODO:
-        // Read assembly code and build symbol table
-        // Parse each line of assembly code and write hack binary code  using symbol table
 
-        // First impl w/o symbol table
+        // First pass through assembly code to build symbol table
+        this.symbolTable.buildTable(lines);
+        
+        // Second pass in order to parse assembly into Hack 16-bit machine language
         const binaryLines = lines.map(line => {
             const cleanLine = line.replace(/\s/g, '');
             const commandType = this.getCommandType(cleanLine);
@@ -53,21 +56,20 @@ export class HackParser {
     private getSymbol(line: string, commandType: CommandType): string {
         switch (commandType) {
             case CommandType.A_COMMAND: {
-                const parsedNum = parseFloat(line.replace('@', ''));
-                const binary = `0${parsedNum.toString(2)}`;
-                // TODO: this will need to check the symbol table if a symbol and not a number directly
-                return this.fill(binary).split('').map((b, i) => (i + 1) % 4 === 0 ? b + ' ' : b).join('');
-            }
-            case CommandType.C_COMMAND: {
-                return ('111' + this.composeCCommandMnemonics(line)).split('').map((b, i) => (i + 1) % 4 === 0 ? b + ' ' : b).join('');
-
-            }
-            case CommandType.L_COMMAND: { // For parsing pseudo-commands like (LOOP) or (END)
-                // TODO: Need to store symbol location...
-                return '\n';
+                // TODO: watch out for labels here
+                if (/-?[0-9]+/.test(line.replace('@', ''))) {
+                    const parsedNum = parseFloat(line.replace('@', ''));
+                    const binary = `0${parsedNum.toString(2)}`;
+                    return this.fill(binary).split('').map((b, i) => (i + 1) % 4 === 0 ? b + ' ' : b).join('');
+                } else {
+                    const memLocation = this.symbolTable.getAddress(line.replace('@', ''));
+                    // TODO: need to fix this.. this isn't parsing out correctly
+                    const binary = `0${memLocation.toString(2)}`;
+                    return this.fill(binary).split('').map((b, i) => (i + 1) % 4 === 0 ? b + ' ' : b).join('');
+                }
             }
             default: {
-                return '\n';
+                return '';
             }
         }
     }
